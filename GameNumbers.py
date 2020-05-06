@@ -7,12 +7,12 @@ class number():
         if output_data == number_from_bot:
             update.message.reply_text('Congratilations! You guessed all the numbers!\n{}'.format(
                 ' '.join(map(lambda x: str(x), output_data))))
-            #return False
+            return True
         elif output_data == ['*' for _ in range(4)]:
             update.message.reply_text('You were unlucky. Not a single number is guessed right\n{}'.format(
                 ' '.join(map(lambda x: str(x), output_data))))
-            #return True
+            return False
         elif output_data != ['*' for _ in range(4)]:
             update.message.reply_text(
                 'Hmm ... something to guess happened\n{}'.format(' '.join(map(lambda x: str(x), output_data))))
-            #return True
+            return False

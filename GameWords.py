@@ -35,11 +35,18 @@ def hod_igroka():
                     print('Tak0e sl0v0 yshe bil0!\n SHTRAF -1')
                     ch -= 1
             else:
+                used_words.append(word_player)
                 flag = False
 
 def hod_kompa():
-    FLAG = False
-    word_bot = random.choice(data)
+    letter = used_words[-1][-1]
+    if letter == 'ъ' or letter == 'ы' or letter == 'ь':
+        letter = used_words[-1][-2]
+    print(letter)
+    with open('russian_nouns_{}.txt'.format(letter), 'r', encoding='UTF-8') as file:
+        data_letter = file.read()
+        data_letter = data_letter.split('\n')
+    word_bot = random.choice(data_letter)
     used_words.append(word_bot)
     print(word_bot)
 

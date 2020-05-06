@@ -46,7 +46,9 @@ def answer(update, context):
         number_from_user = [int(j) for j in update.message.text]
         print(number_from_user)
         f = GameNumbers.number()
-        f.logika(number_from_user, NUMBER_FROM_BOT, update)
+        answer = f.logika(number_from_user, NUMBER_FROM_BOT, update)
+        if answer:
+            GAME_NUMBERS = False
 
 
 def main():
@@ -56,7 +58,7 @@ def main():
 
     start_handler = CommandHandler('start', start)
     game_numbers_handler = CommandHandler('number', game_numbers)
-    game_words_handler = CommandHandler('words', game_numbers)
+    game_words_handler = CommandHandler('words', game_words)
     answer_handler = MessageHandler(Filters.text, answer)
 
     dp.add_handler(start_handler)

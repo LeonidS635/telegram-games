@@ -17,7 +17,7 @@ def hod_igroka():
         word_player = input('Vvedite sl0v0: ')
 
         if word_player not in data:
-            print("hv")
+            print("Это не существительное или такого слова не существует")
             ch -= 1
         else:
             if len(used_words) != 0:
@@ -28,11 +28,11 @@ def hod_igroka():
                         print('schet: ', ch)
                         flag = False
                     else:
-                        print("kvckc")
+                        print("Слово должно начинаться с последней буквы предыдущего слова")
                         ch -= 1
                     print(used_words)
                 else:
-                    print('Tak0e sl0v0 yshe bil0!\n SHTRAF -1')
+                    print('Такое слово уже было!')
                     ch -= 1
             else:
                 used_words.append(word_player)

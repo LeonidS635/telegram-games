@@ -5,14 +5,13 @@ class number():
             if bot_num == number_from_user[enum]:
                 output_data[enum] = bot_num
         if output_data == number_from_bot:
-            update.message.reply_text('Congratilations! You guessed all the numbers!\n{}'.format(
-                ' '.join(map(lambda x: str(x), output_data))))
+            update.message.reply_text('Ура! Число отгадано: {}'.format(
+                ''.join(map(lambda x: str(x), output_data))))
             return True
         elif output_data == ['*' for _ in range(4)]:
-            update.message.reply_text('You were unlucky. Not a single number is guessed right\n{}'.format(
-                ' '.join(map(lambda x: str(x), output_data))))
+            update.message.reply_text('К сожалению, нет ни одной правильной цифры')
             return False
         elif output_data != ['*' for _ in range(4)]:
             update.message.reply_text(
-                'Hmm ... something to guess happened\n{}'.format(' '.join(map(lambda x: str(x), output_data))))
+                'Хмм... Некоторые цифры угаданы\nЧисло: {}'.format(' '.join(map(lambda x: str(x), output_data))))
             return False

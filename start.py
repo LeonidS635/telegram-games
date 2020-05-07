@@ -1,6 +1,6 @@
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram.ext import CallbackContext, CommandHandler
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import random
 import GameNumbers
 import time
@@ -27,12 +27,19 @@ def start(update, context):
         "Привет! Я эхо-бот. Напишите мне что-нибудь, и я пришлю это назад!", reply_markup=markup)
 
 
+def games(update, context):
+    reply_keyboard = [['/number', '/words']]
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    update.message.reply_text(reply_markup=markup)
+
+
 def game_numbers(update, context):
     global GAME_NUMBERS
     global NUMBER_FROM_BOT
     GAME_NUMBERS = True
 
-    update.message.reply_text("Хорошо. Я загадал четырёхзначное число. Попробуй угадать)\nЧисло: *****")
+    update.message.reply_text("Хорошо. Я загадал четырёхзначное число. Попробуй угадать)\nЧисло: ****",
+                              reply_markup=ReplyKeyboardRemove())
 
     dataset_numbers = [i for i in range(10)]
     NUMBER_FROM_BOT = [random.choice(dataset_numbers) for _ in range(4)]
@@ -50,7 +57,19 @@ def game_words(update, context):
     global start_time
     start_time = time.time() + 5
 
-    update.message.reply_text("Хорошо. Давай поиграем в слова. На слово у тебя есть 15 секунд. Начинай.")
+    update.message.reply_text("Хорошо. Давай поиграем в слова. На слово у тебя есть 15 секунд. Начинай.",
+                              reply_markup=ReplyKeyboardRemove())
+
+
+def help(update, context):
+    print(1)
+    if GAME_NUMBERS:
+        update.message.reply_text("Напиши боту число, и он скажет, какие цифры правильные")
+    elif GAME_WORDS:
+        update.message.reply_text("Слово должно начинаться с последней буквы предыдущего слова и помни, "
+                                  "что на ход у тебя есть 15 секунд")
+    else:
+        update.message.reply_text("Это бот мини игр. Выбери, в какую хочешь сыграть('/games'): угадай число или слова")
 
 
 def answer(update, context):
@@ -58,9 +77,7 @@ def answer(update, context):
     global GAME_WORDS
 
     if GAME_NUMBERS:
-        print(update.message.text)
         number_from_user = [int(j) for j in update.message.text]
-        print(number_from_user)
         f = GameNumbers.number()
         answer = f.logika(number_from_user, NUMBER_FROM_BOT, update)
         if answer:
@@ -134,11 +151,15 @@ def main():
     dp = updater.dispatcher
 
     start_handler = CommandHandler('start', start)
+    games_handler = CommandHandler('games', games)
+    help_handler = CommandHandler('help', help)
     game_numbers_handler = CommandHandler('number', game_numbers)
     game_words_handler = CommandHandler('words', game_words)
     answer_handler = MessageHandler(Filters.text, answer)
 
     dp.add_handler(start_handler)
+    dp.add_handler(games_handler)
+    dp.add_handler(help_handler)
     dp.add_handler(game_numbers_handler)
     dp.add_handler(game_words_handler)
     dp.add_handler(answer_handler)

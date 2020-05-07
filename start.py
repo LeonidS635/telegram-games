@@ -11,6 +11,12 @@ global GAME_WORDS
 GAME_NUMBERS = False
 GAME_WORDS = False
 
+used_words = []
+
+with open('russian_nouns.txt', 'r', encoding='UTF-8') as file:
+    data = file.read()
+    data = data.split('\n')
+
 
 def start(update, context):
     reply_keyboard = [['/number', '/words']]
@@ -20,7 +26,7 @@ def start(update, context):
 
 
 def game_numbers(update, context):
-    global GAME_NUMBERS
+    #global GAME_NUMBERS
     global NUMBER_FROM_BOT
     GAME_NUMBERS = True
 
@@ -41,6 +47,8 @@ def game_words(update, context):
 
 def answer(update, context):
     global GAME_NUMBERS
+    global GAME_WORDS
+
     if GAME_NUMBERS:
         print(update.message.text)
         number_from_user = [int(j) for j in update.message.text]
@@ -49,6 +57,47 @@ def answer(update, context):
         answer = f.logika(number_from_user, NUMBER_FROM_BOT, update)
         if answer:
             GAME_NUMBERS = False
+
+    if GAME_WORDS:
+        flag_bot = True
+        ch = 0
+
+        word_player = update.message.text
+
+        if word_player not in data:
+            update.message.reply_text("Это не существительное или такого слова не существует")
+            ch -= 1
+            flag_bot = False
+        else:
+            if len(used_words) != 0:
+                if word_player not in used_words:
+                    if word_player[0] == used_words[-1][-1]:
+                        used_words.append(word_player)
+                        ch += 1
+                        print('schet: ', ch)
+                    else:
+                        update.message.reply_text("Слово должно начинаться с последней буквы предыдущего слова")
+                        ch -= 1
+                        flag_bot = False
+                else:
+                    update.message.reply_text('Такое слово уже было!')
+                    ch -= 1
+                    flag_bot = False
+            else:
+                used_words.append(word_player)
+
+        if flag_bot:
+            letter = used_words[-1][-1]
+            if letter == 'ъ' or letter == 'ы' or letter == 'ь':
+                letter = used_words[-1][-2]
+            print(letter)
+            with open('russian_nouns_{}.txt'.format(letter), 'r', encoding='UTF-8') as file:
+                data_letter = file.read()
+                data_letter = data_letter.split('\n')
+
+            word_bot = random.choice(data_letter)
+            used_words.append(word_bot)
+            update.message.reply_text(word_bot)
 
 
 def main():

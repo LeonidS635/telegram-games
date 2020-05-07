@@ -39,11 +39,11 @@ def hod_igroka():
                 flag = False
 
 def hod_kompa():
-    letter = used_words[-1][-1]
-    if letter == 'ъ' or letter == 'ы' or letter == 'ь':
-        letter = used_words[-1][-2]
-    print(letter)
-    with open('russian_nouns_{}.txt'.format(letter), 'r', encoding='UTF-8') as file:
+    #letter = used_words[-1][-1]
+    #if letter == 'ъ' or letter == 'ы' or letter == 'ь':
+    #    letter = used_words[-1][-2]
+    #print(letter)
+    with open('russian_nouns_{}.txt'.format('а'), 'r', encoding='UTF-8') as file:
         data_letter = file.read()
         data_letter = data_letter.split('\n')
     word_bot = random.choice(data_letter)

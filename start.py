@@ -3,6 +3,7 @@ from telegram.ext import CallbackContext, CommandHandler
 from telegram import ReplyKeyboardMarkup
 import random
 import GameNumbers
+import time
 
 
 REQUEST_KWARGS = {'proxy_url': 'socks5://80.248.225.58:31431'}
@@ -12,6 +13,7 @@ GAME_NUMBERS = False
 GAME_WORDS = False
 
 used_words = []
+start_time = 0
 
 with open('russian_nouns.txt', 'r', encoding='UTF-8') as file:
     data = file.read()
@@ -26,11 +28,11 @@ def start(update, context):
 
 
 def game_numbers(update, context):
-    #global GAME_NUMBERS
+    global GAME_NUMBERS
     global NUMBER_FROM_BOT
     GAME_NUMBERS = True
 
-    update.message.reply_text("Хорошо. Я загадал пятизначное число; у тебя есть 5 попыток.\nЧисло: *****")
+    update.message.reply_text("Хорошо. Я загадал четырёхзначное число. Попробуй угадать)\nЧисло: *****")
 
     dataset_numbers = [i for i in range(10)]
     NUMBER_FROM_BOT = [random.choice(dataset_numbers) for _ in range(4)]
@@ -42,7 +44,13 @@ def game_words(update, context):
     global GAME_WORDS
     GAME_WORDS = True
 
-    update.message.reply_text("Хорошо. Давай поиграем в слова. Начинай.")
+    global used_words
+    used_words = []
+
+    global start_time
+    start_time = time.time() + 5
+
+    update.message.reply_text("Хорошо. Давай поиграем в слова. На слово у тебя есть 15 секунд. Начинай.")
 
 
 def answer(update, context):
@@ -60,44 +68,64 @@ def answer(update, context):
 
     if GAME_WORDS:
         flag_bot = True
-        ch = 0
+        global start_time
 
-        word_player = update.message.text
+        word_player = update.message.text.lower()
 
         if word_player not in data:
             update.message.reply_text("Это не существительное или такого слова не существует")
-            ch -= 1
             flag_bot = False
         else:
             if len(used_words) != 0:
                 if word_player not in used_words:
-                    if word_player[0] == used_words[-1][-1]:
+                    letter = used_words[-1][-1]
+                    if letter == 'ъ' or letter == 'ы' or letter == 'ь':
+                        letter = used_words[-1][-2]
+
+                    if word_player[0] == letter:
                         used_words.append(word_player)
-                        ch += 1
-                        print('schet: ', ch)
                     else:
-                        update.message.reply_text("Слово должно начинаться с последней буквы предыдущего слова")
-                        ch -= 1
+                        update.message.reply_text(
+                            "Слово должно начинаться с последней буквы предыдущего слова: '{}'".format(letter))
                         flag_bot = False
+                        start_time += 2
                 else:
                     update.message.reply_text('Такое слово уже было!')
-                    ch -= 1
                     flag_bot = False
+                    start_time += 2
             else:
                 used_words.append(word_player)
 
         if flag_bot:
+            word = True
+
+            if time.time() - start_time > 15:
+                update.message.reply_text('Время вышло!')
+                GAME_WORDS = False
+                word = False
+
+            start_time = time.time()
+
             letter = used_words[-1][-1]
             if letter == 'ъ' or letter == 'ы' or letter == 'ь':
                 letter = used_words[-1][-2]
-            print(letter)
+
             with open('russian_nouns_{}.txt'.format(letter), 'r', encoding='UTF-8') as file:
                 data_letter = file.read()
                 data_letter = data_letter.split('\n')
 
-            word_bot = random.choice(data_letter)
-            used_words.append(word_bot)
-            update.message.reply_text(word_bot)
+            while word:
+                word_bot = random.choice(data_letter)
+
+                if set(data_letter).issubset(used_words):
+                    update.message.reply_text('Ну ладно, сдаюсь!')
+                    GAME_WORDS = False
+                    word = False
+
+                if word_bot not in used_words:
+                    used_words.append(word_bot)
+                    update.message.reply_text(word_bot)
+                    word = False
 
 
 def main():

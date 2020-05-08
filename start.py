@@ -14,6 +14,7 @@ GAME_WORDS = False
 
 used_words = []
 start_time = 0
+chance = 0
 
 with open('russian_nouns.txt', 'r', encoding='UTF-8') as file:
     data = file.read()
@@ -50,13 +51,16 @@ def game_numbers(update, context):
     global NUMBER_FROM_BOT
     GAME_NUMBERS = True
 
-    update.message.reply_text("Хорошо. Я загадал четырёхзначное число. Попробуй угадать)\nЧисло: ****",
-                              reply_markup=ReplyKeyboardRemove())
+    global chance
+    chance = 14
+
+    update.message.reply_text("Хорошо. Я загадал четырёхзначное число. У тебя есть 15 попыток. "
+                              "Попробуй угадать)\nЧисло: ****", reply_markup=ReplyKeyboardRemove())
 
     dataset_numbers = [i for i in range(10)]
     NUMBER_FROM_BOT = [random.choice(dataset_numbers) for _ in range(4)]
 
-    print(NUMBER_FROM_BOT)
+    # print(NUMBER_FROM_BOT)
 
 
 def game_words(update, context):
@@ -88,11 +92,19 @@ def answer(update, context):
     global GAME_WORDS
 
     if GAME_NUMBERS:
-        number_from_user = [int(j) for j in update.message.text]
-        f = GameNumbers.number()
-        answer = f.logika(number_from_user, NUMBER_FROM_BOT, update)
-        if answer:
+        global chance
+
+        if chance == 0:
             GAME_NUMBERS = False
+            update.message.reply_text("Число так и не разгадано. Это моя тайна)")
+        else:
+            number_from_user = [int(j) for j in update.message.text]
+            f = GameNumbers.number()
+            answer = f.logika(number_from_user, NUMBER_FROM_BOT, update, chance)
+            if answer:
+                GAME_NUMBERS = False
+            else:
+                chance -= 1
 
     if GAME_WORDS:
         flag_bot = True

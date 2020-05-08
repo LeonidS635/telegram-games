@@ -21,6 +21,12 @@ with open('russian_nouns.txt', 'r', encoding='UTF-8') as file:
 
 
 def start(update, context):
+    global GAME_NUMBERS
+    global GAME_WORDS
+
+    GAME_NUMBERS = False
+    GAME_WORDS = False
+
     reply_keyboard = [['/number', '/words']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     update.message.reply_text(
@@ -28,9 +34,15 @@ def start(update, context):
 
 
 def games(update, context):
+    global GAME_NUMBERS
+    global GAME_WORDS
+
+    GAME_NUMBERS = False
+    GAME_WORDS = False
+
     reply_keyboard = [['/number', '/words']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-    update.message.reply_text(reply_markup=markup)
+    update.message.reply_text("Выбери игру, в которую хочешь поиграть", reply_markup=markup)
 
 
 def game_numbers(update, context):
@@ -62,7 +74,6 @@ def game_words(update, context):
 
 
 def help(update, context):
-    print(1)
     if GAME_NUMBERS:
         update.message.reply_text("Напиши боту число, и он скажет, какие цифры правильные")
     elif GAME_WORDS:

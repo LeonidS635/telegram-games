@@ -127,13 +127,20 @@ def answer(update, context):
             GAME_NUMBERS = False
             update.message.reply_text("Число так и не разгадано. Это моя тайна)")
         else:
-            number_from_user = [int(j) for j in update.message.text]
-            f = GameNumbers.number()
-            answer = f.logika(number_from_user, NUMBER_FROM_BOT, update, chance)
-            if answer:
-                GAME_NUMBERS = False
+            number_from_user_str = update.message.text
+
+            if not number_from_user_str.isdigit():
+                update.message.reply_text('Это не число')
+            elif len(number_from_user_str) < 4 or len(number_from_user_str) > 4:
+                update.message.reply_text('Введи четырёхзначное число')
             else:
-                chance -= 1
+                number_from_user = [int(j) for j in update.message.text]
+                f = GameNumbers.number()
+                answer = f.logika(number_from_user, NUMBER_FROM_BOT, update, chance)
+                if answer:
+                    GAME_NUMBERS = False
+                else:
+                    chance -= 1
 
     if GAME_WORDS:
         flag_bot = True
@@ -168,7 +175,7 @@ def answer(update, context):
         if flag_bot:
             word = True
 
-            if time.time() - start_time > 15:
+            if time.time() - start_time > 60:
                 update.message.reply_text('Время вышло!')
                 GAME_WORDS = False
                 word = False

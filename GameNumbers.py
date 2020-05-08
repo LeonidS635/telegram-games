@@ -9,7 +9,7 @@ class number():
                 ''.join(map(lambda x: str(x), output_data))))
             return True
         elif output_data == ['*' for _ in range(4)]:
-            update.message.reply_text('К сожалению, нет ни одной правильной цифры(осталось попыток: {})'.format(chance))
+            update.message.reply_text('К сожалению, нет ни одной правильной цифры (осталось попыток: {})'.format(chance))
             return False
         elif output_data != ['*' for _ in range(4)]:
             update.message.reply_text('Хмм... Некоторые цифры угаданы\nЧисло: {} (осталось попыток: {})'.format(

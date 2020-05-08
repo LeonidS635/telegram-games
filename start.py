@@ -31,7 +31,8 @@ def start(update, context):
     reply_keyboard = [['/number', '/words']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     update.message.reply_text(
-        "Привет! Я эхо-бот. Напишите мне что-нибудь, и я пришлю это назад!", reply_markup=markup)
+        "Привет! Я бот мини-игр. Выбери, в какую игру хочешь сыграть: угадай число - '/number'\nслова - '/words'",
+        reply_markup=markup)
 
 
 def games(update, context):
@@ -60,7 +61,7 @@ def game_numbers(update, context):
     dataset_numbers = [i for i in range(10)]
     NUMBER_FROM_BOT = [random.choice(dataset_numbers) for _ in range(4)]
 
-    # print(NUMBER_FROM_BOT)
+    print(NUMBER_FROM_BOT)
 
 
 def game_words(update, context):

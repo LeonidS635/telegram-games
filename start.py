@@ -7,18 +7,46 @@ import time
 
 
 REQUEST_KWARGS = {'proxy_url': 'socks5://80.248.225.58:31431'}
-global GAME_NUMBERS
-global GAME_WORDS
-GAME_NUMBERS = False
-GAME_WORDS = False
-
-used_words = []
-start_time = 0
-chance = 0
 
 with open('russian_nouns.txt', 'r', encoding='UTF-8') as file:
     data = file.read()
     data = data.split('\n')
+
+
+def main():
+    global GAME_NUMBERS
+    global GAME_WORDS
+    global used_words
+    global start_time
+    global chance
+
+    GAME_NUMBERS = False
+    GAME_WORDS = False
+    used_words = []
+    start_time = 0
+    chance = 0
+
+    updater = Updater('1204493596:AAGfC3E7LFwdgMUmmuL4Vnw6cxgK_l-04Dw', use_context=True, request_kwargs=REQUEST_KWARGS)
+
+    dp = updater.dispatcher
+
+    start_handler = CommandHandler('start', start)
+    games_handler = CommandHandler('games', games)
+    help_handler = CommandHandler('help', help)
+    game_numbers_handler = CommandHandler('number', game_numbers)
+    game_words_handler = CommandHandler('words', game_words)
+    answer_handler = MessageHandler(Filters.text, answer)
+
+    dp.add_handler(start_handler)
+    dp.add_handler(games_handler)
+    dp.add_handler(help_handler)
+    dp.add_handler(game_numbers_handler)
+    dp.add_handler(game_words_handler)
+    dp.add_handler(answer_handler)
+
+    updater.start_polling()
+
+    updater.idle()
 
 
 def start(update, context):
@@ -167,30 +195,6 @@ def answer(update, context):
                     used_words.append(word_bot)
                     update.message.reply_text(word_bot)
                     word = False
-
-
-def main():
-    updater = Updater('1204493596:AAGfC3E7LFwdgMUmmuL4Vnw6cxgK_l-04Dw', use_context=True, request_kwargs=REQUEST_KWARGS)
-
-    dp = updater.dispatcher
-
-    start_handler = CommandHandler('start', start)
-    games_handler = CommandHandler('games', games)
-    help_handler = CommandHandler('help', help)
-    game_numbers_handler = CommandHandler('number', game_numbers)
-    game_words_handler = CommandHandler('words', game_words)
-    answer_handler = MessageHandler(Filters.text, answer)
-
-    dp.add_handler(start_handler)
-    dp.add_handler(games_handler)
-    dp.add_handler(help_handler)
-    dp.add_handler(game_numbers_handler)
-    dp.add_handler(game_words_handler)
-    dp.add_handler(answer_handler)
-
-    updater.start_polling()
-
-    updater.idle()
 
 
 if __name__ == '__main__':

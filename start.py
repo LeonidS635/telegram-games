@@ -5,7 +5,6 @@ import random
 import GameNumbers
 import time
 
-
 REQUEST_KWARGS = {'proxy_url': 'socks5://80.248.225.58:31431'}
 
 with open('russian_nouns.txt', 'r', encoding='UTF-8') as file:
@@ -146,7 +145,16 @@ def answer(update, context):
         flag_bot = True
         global start_time
 
-        word_player = update.message.text.lower()
+        flag_word_player = False
+
+        while not flag_word_player:
+            if time.time() - start_time > 30:
+                update.message.reply_text('Время вышло!')
+                GAME_WORDS = False
+                flag_word_player = True
+                word = False
+
+            word_player = update.message.text.lower()
 
         if word_player not in data:
             update.message.reply_text("Это не существительное или такого слова не существует")
@@ -175,10 +183,10 @@ def answer(update, context):
         if flag_bot:
             word = True
 
-            if time.time() - start_time > 60:
-                update.message.reply_text('Время вышло!')
-                GAME_WORDS = False
-                word = False
+            #if time.time() - start_time > 30:
+             #   update.message.reply_text('Время вышло!')
+              #  GAME_WORDS = False
+               # word = False
 
             start_time = time.time()
 

@@ -43,6 +43,13 @@ def main():
     dp.add_handler(game_words_handler)
     dp.add_handler(answer_handler)
 
+    dp.add_handler(CommandHandler("set", set_timer,
+                                  pass_args=True,
+                                  pass_job_queue=True,
+                                  pass_chat_data=True))
+    dp.add_handler(CommandHandler("unset", unset_timer,
+                                  pass_chat_data=True))
+
     updater.start_polling()
 
     updater.idle()
@@ -148,13 +155,15 @@ def answer(update, context):
         flag_word_player = False
 
         while not flag_word_player:
+            print(len(used_words))
+            word_player = update.message.text.lower()
+            if len(used_words) == 1 or word_player != used_words[-2]:
+                flag_word_player = True
             if time.time() - start_time > 30:
                 update.message.reply_text('Время вышло!')
                 GAME_WORDS = False
                 flag_word_player = True
                 word = False
-
-            word_player = update.message.text.lower()
 
         if word_player not in data:
             update.message.reply_text("Это не существительное или такого слова не существует")
@@ -211,6 +220,47 @@ def answer(update, context):
                     update.message.reply_text(word_bot)
                     word = False
 
+def task(context):
+    job = context.job
+    context.bot.send_message(job.context, text='Вернулся!')
 
+def set_timer(update, context):
+    """Добавляем задачу в очередь"""
+    chat_id = update.message.chat_id
+    try:
+        # args[0] должен содержать значение аргумента (секунды таймера)
+        due = int(context.args[0])
+        if due < 0:
+            update.message.reply_text(
+                'Извините, не умеем возвращаться в прошлое')
+            return
+
+        # Добавляем задачу в очередь
+        # и останавливаем предыдущую (если она была)
+        if 'job' in context.chat_data:
+            old_job = context.chat_data['job']
+            old_job.schedule_removal()
+        new_job = context.job_queue.run_once(task, due, context=chat_id)
+        # Запоминаем созданную задачу в данных чата.
+        context.chat_data['job'] = new_job
+        # Присылаем сообщение о том, что всё получилось.
+        update.message.reply_text(f'Вернусь через {due} секунд')
+
+    except (IndexError, ValueError):
+        update.message.reply_text('Использование: /set <секунд>')
+
+def unset_timer(update, context):
+    # Проверяем, что задача ставилась
+    if 'job' not in context.chat_data:
+        update.message.reply_text('Нет активного таймера')
+        return
+    job = context.chat_data['job']
+    # планируем удаление задачи (выполнится, когда будет возможность)
+    job.schedule_removal()
+    # и очищаем пользовательские данные
+    del context.chat_data['job']
+    update.message.reply_text('Хорошо, вернулся сейчас!')
+
+# update.message.send_text('test message')
 if __name__ == '__main__':
     main()

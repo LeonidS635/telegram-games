@@ -14,13 +14,6 @@ id = {}
 
 class User():
     def __init__(self):
-        self.GAME_NUMBERS = False
-        self.GAME_WORDS = False
-        self.used_words = []
-        self.start_time = 0
-        self.chance = 0
-        self.functions = {}
-
         with open('russian_nouns.txt', 'r', encoding='UTF-8') as file:
             self.data = file.read()
             self.data = self.data.split('\n')
@@ -29,7 +22,7 @@ class User():
         id[update.message.chat_id]['GAME_NUMBERS'] = False
         id[update.message.chat_id]['GAME_WORDS'] = False
 
-        reply_keyboard = [['/number', '/words']]
+        reply_keyboard = [['/number'], ['/words']]
         markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
         update.message.reply_text("Выбери игру, в которую хочешь поиграть", reply_markup=markup)
 
@@ -41,16 +34,17 @@ class User():
         number_from_bot = [random.choice(dataset_numbers) for _ in range(4)]
 
         id[update.message.chat_id]['NUMBER'] = number_from_bot
+        id[update.message.chat_id]['GAME_WORDS'] = False
         id[update.message.chat_id]['GAME_NUMBERS'] = True
-        id[update.message.chat_id]['chance'] = 4
+        id[update.message.chat_id]['chance'] = 14
 
         print(id)
 
     def game_words(self, update, context):
         id[update.message.chat_id]['GAME_WORDS'] = True
+        id[update.message.chat_id]['GAME_NUMBERS'] = False
         id[update.message.chat_id]['used_words'] = []
-
-        self.start_time = time.time() + 5
+        id[update.message.chat_id]['start_time'] = time.time()
 
         update.message.reply_text("Хорошо. Давай поиграем в слова. На слово у тебя есть 15 секунд. Начинай.",
                                   reply_markup=ReplyKeyboardRemove())
@@ -69,6 +63,8 @@ class User():
         chat_id = update.message.chat_id
 
         if id[chat_id]['GAME_NUMBERS']:
+            id[chat_id]['GAME_WORDS'] = False
+
             if id[chat_id]['chance'] == 0:
                 id[chat_id]['GAME_NUMBERS'] = False
                 context.bot.send_message(chat_id=chat_id, text="Число так и не разгадано. Это моя тайна)")
@@ -81,53 +77,56 @@ class User():
                     context.bot.send_message(chat_id=chat_id, text='Введи четырёхзначное число')
                 else:
                     number_from_user = [int(j) for j in update.message.text]
-                    f = GameNumbers.number()
+                    f = GameNumbers.Number()
                     answer = f.logika(number_from_user, id[chat_id]['NUMBER'], context, id[chat_id]['chance'], chat_id)
+
                     if answer:
                         id[chat_id]['GAME_NUMBERS'] = False
                     else:
                         id[chat_id]['chance'] -= 1
 
         if id[chat_id]['GAME_WORDS']:
-            flag_bot = True
+            id[chat_id]['GAME_NUMBERS'] = False
+            id[chat_id]['flag_bot'] = True
 
-            word_player = update.message.text.lower()
+            if time.time() - id[chat_id]['start_time'] > 15:
+                context.bot.send_message(chat_id=chat_id, text='Время вышло!')
+                id[chat_id]['GAME_WORDS'] = False
+                id[chat_id]['flag_bot'] = False
 
-            if word_player not in self.data:
-                context.bot.send_message(chat_id=chat_id, text="Это не существительное или такого слова не существует")
-                flag_bot = False
-            else:
-                if len(id[chat_id]['used_words']) != 0:
-                    if word_player not in id[chat_id]['used_words']:
-                        letter = id[chat_id]['used_words'][-1][-1]
+            if id[chat_id]['flag_bot']:
+                id[chat_id]['word_player'] = update.message.text.lower()
 
-                        if letter == 'ъ' or letter == 'ы' or letter == 'ь':
-                            letter = id[chat_id]['used_words'][-1][-2]
-
-                        if word_player[0] == letter:
-                            id[chat_id]['used_words'].append(word_player)
-                        else:
-                            context.bot.send_message(chat_id=chat_id, text="Слово должно начинаться с последней буквы "
-                                                                           "предыдущего слова: '{}'".format(letter))
-                            flag_bot = False
-                            self.start_time += 2
-                    else:
-                        context.bot.send_message(chat_id=chat_id, text='Такое слово уже было!')
-
-                        flag_bot = False
-                        self.start_time += 2
+                if id[chat_id]['word_player'] not in self.data:
+                    context.bot.send_message(chat_id=chat_id, text="Это не существительное или такого слова не "
+                                                                   "существует")
+                    id[chat_id]['flag_bot'] = False
                 else:
-                    id[chat_id]['used_words'].append(word_player)
+                    if len(id[chat_id]['used_words']) != 0:
+                        if id[chat_id]['word_player'] not in id[chat_id]['used_words']:
+                            letter = id[chat_id]['used_words'][-1][-1]
 
-            if flag_bot:
-                word = True
+                            if letter == 'ъ' or letter == 'ы' or letter == 'ь':
+                                letter = id[chat_id]['used_words'][-1][-2]
 
-                if time.time() - self.start_time > 60:
-                    context.bot.send_message(chat_id=chat_id, text='Время вышло!')
-                    id[chat_id]['GAME_WORDS'] = False
-                    word = False
+                            if id[chat_id]['word_player'][0] == letter:
+                                id[chat_id]['used_words'].append(id[chat_id]['word_player'])
+                            else:
+                                context.bot.send_message(chat_id=chat_id, text="Слово должно начинаться с последней "
+                                                                               "буквы "
+                                                                               "предыдущего слова: '{}'".format(letter))
+                                id[chat_id]['flag_bot'] = False
+                                id[chat_id]['start_time'] += 2
+                        else:
+                            context.bot.send_message(chat_id=chat_id, text='Такое слово уже было!')
 
-                self.start_time = time.time()
+                            id[chat_id]['flag_bot'] = False
+                            id[chat_id]['start_time'] += 2
+                    else:
+                        id[chat_id]['used_words'].append(id[chat_id]['word_player'])
+
+            if id[chat_id]['flag_bot']:
+                id[chat_id]['word'] = True
 
                 letter = id[chat_id]['used_words'][-1][-1]
                 if letter == 'ъ' or letter == 'ы' or letter == 'ь':
@@ -137,19 +136,20 @@ class User():
                     data_letter = file.read()
                     data_letter = data_letter.split('\n')
 
-                while word:
+                while id[chat_id]['word']:
                     word_bot = random.choice(data_letter)
 
                     if set(data_letter).issubset(id[chat_id]['used_words']):
                         context.bot.send_message(chat_id=chat_id, text='Ну ладно, сдаюсь!')
                         id[chat_id]['GAME_WORDS'] = False
-                        word = False
+                        id[chat_id]['word'] = False
 
-                    if word_bot not in self.used_words:
+                    if word_bot not in id[chat_id]['used_words']:
                         id[chat_id]['used_words'].append(word_bot)
                         context.bot.send_message(chat_id=chat_id, text=word_bot)
-                        word = False
-        print(id)
+
+                        id[chat_id]['word'] = False
+                        id[chat_id]['start_time'] = time.time()
 
 
 def start(update, context):
@@ -157,9 +157,8 @@ def start(update, context):
     id[update.message.chat_id]['GAME_NUMBERS'] = False
     id[update.message.chat_id]['GAME_WORDS'] = False
 
-    User()
     print(update.message.chat_id)
-    reply_keyboard = [['/number', '/words']]
+    reply_keyboard = [['/number'], ['/words']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     update.message.reply_text(
         "Привет! Я бот мини-игр. Выбери, в какую игру хочешь сыграть: угадай число - '/number'\nслова - '/words'",
